@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundial 2026 - Calendario y Resultados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mundial: '#0f172a',
+                        mundialLight: '#2563eb',
+                        mundialGold: '#d97706',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-gradient-to-r from-mundial via-slate-800 to-mundialLight text-white py-10 px-4 shadow-lg">
+        <div class="container mx-auto text-center">
+            <span class="bg-white/20 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-sm">FIFA World Cup 2026</span>
+            <h1 class="text-3xl md:text-5xl font-extrabold mt-3 tracking-tight">🏆 Mundial 2026</h1>
+            <p class="mt-2 text-slate-200/90 font-medium text-sm md:text-base">Calendario oficial y resultados en tiempo real</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 flex-grow">
+
+        <div class="mb-10 flex flex-wrap gap-2 justify-center bg-white p-2 rounded-2xl shadow-sm max-w-xl mx-auto border border-slate-100">
+            <button onclick="filtrarFase('todos', event)" class="fase-btn flex-1 min-w-[80px] bg-mundialLight text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm">Todos</button>
+            <button onclick="filtrarFase('grupos', event)" class="fase-btn flex-1 min-w-[80px] text-slate-600 hover:bg-slate-50 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all">Grupos</button>
+            <button onclick="filtrarFase('octavos', event)" class="fase-btn flex-1 min-w-[80px] text-slate-600 hover:bg-slate-50 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all">Octavos</button>
+            <button onclick="filtrarFase('final', event)" class="fase-btn flex-1 min-w-[80px] text-slate-600 hover:bg-slate-50 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all">Final</button>
+        </div>
+
+        <div id="lista-partidos" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+
+    </main>
+
+    <footer class="bg-mundial text-slate-400 py-6 text-center text-xs border-t border-slate-800">
+        <p>© 2026 - Datos oficiales de la Copa del Mundo FIFA.</p>
+    </footer>
+
+    <script>
+        // Diccionario de banderas para los países
+        const banderas = {
+            "Mexico": "🇲🇽", "México": "🇲🇽", "Canada": "🇨🇦", "Canadá": "🇨🇦", 
+            "USA": "🇺🇸", "United States": "🇺🇸", "Estados Unidos": "🇺🇸",
+            "Ecuador": "🇪🇨", "Argentina": "🇦🇷", "France": "🇫🇷", "Francia": "🇫🇷", 
+            "Brazil": "🇧🇷", "Brasil": "🇧🇷", "Spain": "🇪🇸", "España": "🇪🇸"
+        };
+
+        // Variable global para almacenar los partidos
+        let partidos = [];
+
+        // 🖨️ Función para renderizar partidos en pantalla
+        function mostrarPartidos(lista = partidos) {
+            const contenedor = document.getElementById('lista-partidos');
+            contenedor.innerHTML = '';
+
+            if (!lista || lista.length === 0) {
+                contenedor.innerHTML = `<p class="text-center text-slate-400 col-span-full py-12 font-medium">No hay partidos registrados para esta fase.</p>`;
+                return;
+            }
+
+            lista.forEach(partido => {
+                const tarjeta = document.createElement('div');
+                tarjeta.className = "bg-white rounded-2xl p-6 card-shadow border border-slate-100 transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between";
+
+                let faseBadgeColor = "bg-blue-50 text-blue-600";
+                if(partido.fase.includes('octavos') || partido.fase.includes('last_16')) faseBadgeColor = "bg-purple-50 text-purple-600";
+                if(partido.fase.includes('final')) faseBadgeColor = "bg-amber-50 text-amber-600 font-bold border border-amber-200";
+
+                const isE1Winner = partido.ganador === partido.equipo1;
+                const isE2Winner = partido.ganador === partido.equipo2;
+                const isEmpate = partido.ganador === "Empate";
+
+                tarjeta.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${faseBadgeColor}">
+                                ${partido.fase}
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">${partido.hora}</span>
+                        </div>
+                        
+                        <h3 class="text-sm font-semibold text-slate-700">${partido.fecha}</h3>
+                        <p class="text-xs text-slate-400 mb-6 flex items-center gap-1">📍 ${partido.estadio}</p>
+
+                        <div class="grid grid-cols-7 items-center justify-center my-6 bg-slate-50/80 p-4 rounded-xl border border-slate-100">
+                            <div class="col-span-2 text-center">
+                                <img src="${partido.bandera1}" class="w-10 h-10 mx-auto mb-2 object-contain drop-shadow-sm" alt="${partido.equipo1}">
+                                <span class="text-sm font-semibold block truncate ${isE1Winner ? 'text-slate-900 font-bold' : (isE2Winner ? 'text-slate-400 font-normal' : 'text-slate-700')}">${partido.equipo1}</span>
+                            </div>
+                            
+                            <div class="col-span-3 text-center flex justify-center items-center">
+                                <span class="bg-slate-900 text-white font-mono text-lg font-bold px-3 py-1.5 rounded-lg shadow-inner tracking-widest">
+                                    ${partido.goles1} - ${partido.goles2}
+                                </span>
+                            </div>
+
+                            <div class="col-span-2 text-center">
+                                <img src="${partido.bandera2}" class="w-10 h-10 mx-auto mb-2 object-contain drop-shadow-sm" alt="${partido.equipo2}">
+                                <span class="text-sm font-semibold block truncate ${isE2Winner ? 'text-slate-900 font-bold' : (isE1Winner ? 'text-slate-400 font-normal' : 'text-slate-700')}">${partido.equipo2}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-50 pt-3 mt-2 text-center">
+                        <p class="text-xs font-medium ${isEmpate ? 'text-amber-600' : 'text-emerald-600'} flex items-center justify-center gap-1">
+                            ${partido.status === "SCHEDULED" ? '⏳ Próximamente' : (isEmpate ? '🤝 Empate' : `🎉 Ganador: ${partido.ganador}`)}
+                        </p>
+                    </div>
+                `;
+                contenedor.appendChild(tarjeta);
+            });
+        }
+
+        // 🔍 Filtrar por fase
+        function filtrarFase(fase, event) {
+            if (fase === 'todos') {
+                mostrarPartidos(partidos);
+            } else {
+                const filtrados = partidos.filter(p => p.fase.toLowerCase().includes(fase));
+                mostrarPartidos(filtrados);
+            }
+
+            if(event) {
+                document.querySelectorAll('.fase-btn').forEach(btn => {
+                    btn.classList.remove('bg-mundialLight', 'text-white', 'shadow-sm');
+                    btn.classList.add('text-slate-600', 'hover:bg-slate-50');
+                });
+                event.currentTarget.classList.remove('text-slate-600', 'hover:bg-slate-50');
+                event.currentTarget.classList.add('bg-mundialLight', 'text-white', 'shadow-sm');
+            }
+        }
+
+        // 🌐 Conectar con la API Real
+        async function cargarDatosReales() {
+            // Agregamos un proxy público enfrente de la URL de la API
+            const URL_API = "https://corsproxy.io/?" + encodeURIComponent("https://api.football-data.org/v4/competitions/WC/matches");
+            const API_KEY = "01fea9d399634ae7b89163acb6441814"; // REEMPLAZA ESTO CON TU TOKEN DE FOOTBALL-DATA.ORG
+
+            try {
+                const respuesta = await fetch(URL_API, {
+                    headers: { 'X-Auth-Token': API_KEY }
+                });
+                
+                if (!respuesta.ok) throw new Error("Respuesta incorrecta de la API");
+                
+                const datos = await respuesta.json();
+
+                // Mapeo y traducción de datos de la API
+                partidos = datos.matches.map(match => {
+                    let ganador = "Empate";
+                    if(match.score.winner === "HOME_TEAM") ganador = match.homeTeam.name;
+                    if(match.score.winner === "AWAY_TEAM") ganador = match.awayTeam.name;
+
+                    let faseTraducida = "Grupos";
+                    if(match.stage !== "GROUP_STAGE") faseTraducida = match.stage.replace('_', ' ').toLowerCase();
+
+                    return {
+                        id: match.id,
+                        fase: faseTraducida,
+                        fecha: new Date(match.utcDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+                        hora: new Date(match.utcDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                        estadio: match.venue || "Por definir",
+                        equipo1: match.homeTeam.name || "Por definir",
+                        bandera1: match.homeTeam.crest, // <-- NUEVO: Escudo local
+                        equipo2: match.awayTeam.name || "Por definir",
+                        bandera2: match.awayTeam.crest,
+                        goles1: match.score.fullTime.home ?? "-",
+                        goles2: match.score.fullTime.away ?? "-",
+                        ganador: ganador,
+                        status: match.status
+                    };
+                });
+
+                mostrarPartidos();
+
+            } catch (error) {
+                console.error("Error al traer los datos:", error);
+                document.getElementById('lista-partidos').innerHTML = `
+                    <div class="text-center col-span-full py-12">
+                        <p class="text-red-500 font-semibold mb-2">⚠️ Error de conexión o CORS activo</p>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto">Asegúrate de cambiar tu URL en la barra de direcciones de <code class="bg-slate-100 p-1 rounded text-red-600">127.0.0.1</code> a <code class="bg-slate-100 p-1 rounded text-emerald-600">localhost</code>.</p>
+                    </div>`;
+            }
+        }
+
+        window.onload = () => cargarDatosReales();
+    </script>
+</body>
+</html>
