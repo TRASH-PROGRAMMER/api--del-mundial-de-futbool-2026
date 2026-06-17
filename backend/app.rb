@@ -17,7 +17,7 @@ get '/api/matches' do
   uri = URI('https://api.football-data.org/v4/competitions/WC/matches')
 
   request = Net::HTTP::Get.new(uri)
-  request['X-Auth-Token'] = API_KEY
+  request['X-Auth-Token'] = "01fea9d399634ae7b89163acb6441814"
 
   response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
     http.request(request)

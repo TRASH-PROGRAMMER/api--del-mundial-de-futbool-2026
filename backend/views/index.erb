@@ -152,12 +152,11 @@
         // 🌐 Conectar con la API Real
         async function cargarDatosReales() {
             // Agregamos un proxy público enfrente de la URL de la API
-            const URL_API = "https://corsproxy.io/?" + encodeURIComponent("https://api.football-data.org/v4/competitions/WC/matches");
-            const API_KEY = "01fea9d399634ae7b89163acb6441814"; // REEMPLAZA ESTO CON TU TOKEN DE FOOTBALL-DATA.ORG
+           const URL_API = "/api/matches";
 
             try {
                 const respuesta = await fetch(URL_API, {
-                    headers: { 'X-Auth-Token': API_KEY }
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
                 if (!respuesta.ok) throw new Error("Respuesta incorrecta de la API");
