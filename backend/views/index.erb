@@ -156,7 +156,7 @@
 
             try {
                 const respuesta = await fetch(URL_API, {
-                    headers: { 'Content-Type': 'application/json' }
+                       method: 'GET'
                 });
                 
                 if (!respuesta.ok) throw new Error("Respuesta incorrecta de la API");
